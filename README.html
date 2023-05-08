@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='UTF-8'>
+    <title>Supplementary material</title>
+    
+  </head>
+  <body>
+    <h1>Computing Abductive Explanations for Boosted Trees</h1>
+    <h1>Supplementary material</h1>
+    
+    <h2>Contents</h2>
+    This archive contains the following resources:
+    <ul>
+      <li><b><code>sources</code></b>: The source code is divided into two parts:</li>
+      <ul>
+	<li><code>sources/PyLearningExplainer</code>: The software used to compute Tree Specific (TS) reasons.</li>
+	<li><code>sources/xreason</code>: The <a href="https://github.com/alexeyignatiev/xreason">XReason</a> software (modified - as described in the paper - in order to be able to start with a TS reason of the instance instead of the instance itself, and to return an abductive explanation of the instance at any time).</li>
+      </ul>
+
+      <li><b><code>sources/PyLearningExplainer/models</code></b>: For each dataset, the folder contains all the information used to implement a 10-fold cross validation process:
+	<ul>
+	  <li>The models (i.e., the boosted trees used).</li>
+	  <li>The indexes of the training and test instances used to learn and evaluate the models.</li> 
+	  <li>And the indexes of 100 selected instances used in the experiments and for which explanations were sought for.</li>
+	</ul>
+      More precisely, for each dataset, and for each part &lt;i&gt of it considered in the cross validation process (0 <= i < 10), three files are used to represent a model and the associated instances:
+      <ul>
+	<li><code>&lt;dataset&gt;.&lt;i&gt;.model</code>: The boosted trees of the model (in XGBoost format).</li>
+	<li><code>&lt;dataset&gt;.&lt;i&gt;.map</code>: The training and test indexes for the &lt;i&gt; th fold.</li> 
+	<li><code>&lt;dataset&gt;.&lt;i&gt;.instances</code>: The indexes of the 10 instances selected from the test set of the &lt;i&gt; th fold.</li>
+      </ul>
+      
+      <li><b><code>logs</code></b>: The outputs produced by the algorithms run in the experiments:</li>
+      <ul>
+	<li><code>F_CV_save_models</code>: saving models
+	<li><code>F_xreason_FE_100s</code>: XReason
+	<li><code>F_TS_and_xreason_FE_100s</code>: TS+XReason
+      </ul>
+      <li><b><code>datasets_information.[xlsx|pdf]</code></b>: Additional information about datasets (the number of classes, features and instances, and then the source and the link to the dataset website).</li>
+      <li><b><code>results_per_dataset.[xlsx|pdf]</code></b>: Additional information about results on each dataset for the XReason and TS+XReason experiments.
+	</br>
+	
+	<ul>
+	  <li>In blue, there are, the dataset, the numbers of classes, features and instances, the mean accuracy, the numbers of trees in the boosted trees for each model, the numbers of selected instances and the number of features used in the models in average. for the experiments.</li>     
+	  <li>In yellow, the average run times over the 100 instances per dataset. For TS + XReason , the run times of TS and XReason are also given separately.</li>   
+	  <li>In green, the average reduction rate over the 100 instances per dataset. For TS + XReason, a focus is made on the TS method.</li>
+	  <li>In red, the number of sufficient reasons for each of the two methods.</li>
+	  <li>Finally, in orange, the number of timeouts.
+	</ul>
+      </li>
+    </ul>
+
+    <h2>Software</h2>
+
+    <h4>Setup</h4>
+    <ul>
+      <li>Be sure to use a Linux OS and to use a version of Python >= to 3.8.</li>
+      <li>Create and activate a new virtual environment:</li>
+      <ul>
+	<li><code>sudo apt-get install python3.8-venv</code></li>
+	<li><code>python3.8 -m venv env</code></li>
+	<li><code>source env/bin/activate</code></li>
+      </ul>
+      <li>Install dependencies:</li>
+      <ul>
+	<li><code>python3.8 -m pip install -r sources/PyLearningExplainer/requirements.txt</code></li>
+	<li><code>python3.8 -m pip install -r sources/xreason/requirements.txt</code></li>
+      </ul>
+      <li>Compile the C++ code (python C extensions):</li>
+      <ul>
+	<li><code>cd sources/PyLearningExplainer/</code></li>
+	<li><code>python3 setup.py install --user</code></li>
+	<li>Remark: if you are in a virtual environment (from the 'env' directory), you have to copy the library inside:</li>
+	<ul>
+	  <li><code>cd ../../</code></li>
+	  <li><code>cp sources/PyLearningExplainer/build/lib.linux-x86_64-3.8/c_explainer.cpython-38-x86_64-linux-gnu.so env/lib/python3.8/site-packages/.</code></li>
+	</ul>
+      </ul>
+      
+    </ul>
+
+    <h4>How to use our programs</h4>
+    <ul>
+      <li>
+	The training and evaluation of the 50 datasets (available in <code>datasets.tar.gz</code>) have already been done and saved in the <code>sources/PyLearningExplainer/models</code> directory. If you want to generate new models from other instances, you can execute the <code>sources/PyLearningExplainer/example/CV_BTSaveModelAndInstances.py</code> script. </br> Your dataset has to fulfill a .csv format, where the last column gives the label (class) of the instance (corresponding to the line) and all values are numerical ones (values of categorical features must be turned into numbers). Binary classification or multi-class classification are allowed.</li> 
+      <li>In the next commands, we consider that:</li>
+      <ul>
+	<li>We have unpacked <code>datasets.tar.gz</code> in the <code>neurips_supplementary_materials/datasets</code> folder (<code>tar -xf datasets.tar.gz</code> to extract).</li>
+	<li>We execute the commands from the <code>sources/PyLearningExplainer/</code> directory, so you have to configure the python path in this way:</li>
+	<ul>
+	  <li><code>cd sources/PyLearningExplainer/</code></li>
+	  <li><code>export PYTHONPATH="${PYTHONPATH}:${PWD}/.."</code></li>
+	</ul>
+      </ul>
+
+	
+      <li>The TS+XReason script:</li>
+      <ul>
+	<li><code>python3.8 example/CV_TSAndXreasonScript.py -data=../../datasets/yeast.csv -model=models/yeast_model/ -timelimit=100 -niterations=1000</code></li>
+	<li>This command runs TS+XReason on the set of 100 instances with a timeout of 100 seconds per instance. Moreover, for each instance x, TS has been called 1000 times (<code>-niterations=1000</code>):
+	  </br>
+	  at each run, an elimination ordering of the characteristics of x has been picked up at random (as considered at line 3. of Algorithm 2 of the paper). </li>
+      </ul>
+      <li>The XReason script:</li>
+      <ul>
+	<li><code>python3.8 example/CV_XreasonScript.py -data=../../datasets/yeast.csv -model=models/yeast_model/ -timelimit=100</code></li>
+	<li>This command runs XReason on the set of 100 instances with a timeout of 100 seconds per instance.
+      </ul>
+      <li>To generate models and instances from a new dataset:</li>
+      <ul>
+	<li><code>python3.8 example/CV_BTSaveModelAndInstances.py -data=../../datasets/your_dataset.csv</code></li>
+	<li>Implement a 10-fold cross validation process: spliting, training and evaluation phases.</li>
+	<li>Resulting models are stored in the <code>sources/PyLearningExplainer/models</code> directory. If models based on the same dataset already exist in this folder, the script overwrites them.</li>
+      </ul>
+    </ul>
+    <h4>Illustration through an example</h4>
+    <ul>
+    <li>First, we import the library:</li>
+    <pre><code>
+	from PyLearningExplainer import *
+    </code></pre>
+    <li>Next, we create a boosted tree:</li>
+    <pre><code>
+	node1_3 = DecisionNode(3, 0.5, left=0.3, right=-0.4)
+	node1_2 = DecisionNode(2, 0.5, left=-0.2, right=0.1)
+	node1_1 = DecisionNode(1, 0.5, left=node1_2, right=node1_3)
+	tree1 = DecisionTree(TypeTree.WEIGHT, 4, node1_1, target_class=0)
+
+	node2_4 = DecisionNode(4, 0.5, left=-0.2, right=0.5)
+	node2_3 = DecisionNode(3, 0.5, left=-0.3, right=0.1)
+	node2_2 = DecisionNode(2, 0.5, left=node2_3, right=node2_4)
+	tree2 = DecisionTree(TypeTree.WEIGHT, 4, node2_2, target_class=1)
+
+	BTs = BoostedTrees([tree1, tree2], n_classes=2)
+    </code></pre>
+    <li>We initialize the Explainer with an instance:</li>
+    <pre><code>
+	instance = (1, 1, 1, 1)
+	print("instance:", instance)
+
+	explainer = ExplainerBT(BTs)
+	explainer.set_instance(instance)
+    </code></pre>
+
+    <li>Finally, we compute a TS-explanation for this instance:</li>
+    <pre><code>
+	reason = explainer.compute_abductive_reason(
+	n_iterations=int(1000), 
+	time_limit=0, 
+	reason_expressivity=ReasonExpressivity.Features)
+	print(reason)
+    </code></pre>
+    <li>You can execute this program by typing <code>python3.8 example/Example.py</code>
+      </ul>
+    <h2>PyXAI</h2>
+
+    PyXAI (Python eXplainable AI) is a Python library (version 3.6 or later) for deriving explanations of various forms from ML models.
+
+    <ul>
+      <li>The computation of TS-explanations is offered by PyXAI.</li>
+      <li>You can consult the following page for more information about PyXAI: <a href="http://www.cril.univ-artois.fr/pyxai/documentation/explanations/BTexplanations/treespecific/">http://www.cril.univ-artois.fr/pyxai/documentation/explanations/BTexplanations/treespecific/</a> </li>
+      
+    </ul>
+    
+    
+</body>
+</html>
